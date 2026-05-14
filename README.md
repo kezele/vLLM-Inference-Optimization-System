@@ -38,13 +38,14 @@ Metrics Tracked
 - GPU memory usage
 - batch size
 - max tokens
-- Technologies Used
+
+Technologies Used
 - Python
 - vLLM
 - Hugging Face Transformers
 - CUDA GPU Acceleration
 - Google Colab
-- Future Improvements
+
 
 Challenges Faced During API Deployment in Google Colab
 
@@ -60,6 +61,7 @@ Key challenges included:
 
 These limitations highlighted the tradeoff between rapid prototyping environments like Colab and more production-oriented infrastructure such as dedicated GPU servers, Docker containers, or cloud-based deployments on AWS/Kubernetes.
 
+Future Improvements 
 
 Potential future extensions include:
 

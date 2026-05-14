@@ -1,0 +1,121 @@
+# NOTE 1 - each section of this code should be run in blocks in this order to optimize runtime and compiling dependencies 
+
+# Tracks GPU and CUDA metadata to determine current memory capacity (VRAM)
+!nvidia-smi
+
+#Installations and imports
+!pip install -q vllm openai
+import vllm
+print("vLLM installed successfully")
+
+import torch
+print("CUDA available: ", torch.cuda.is_available())
+print("GPU: ", torch.cuda.get_device_name(0))
+
+#Phase 1 - run a basic llm with a vllm
+
+#1. Import the model
+from vllm import LLM, SamplingParams
+import torch, gc, time
+
+#2. Load the model - define model and gpu memory usage
+llm = LLM(
+    model="facebook/opt-125m",
+    gpu_memory_utilization = 0.8
+)
+
+#3. Set generation rules
+sampling_params = SamplingParams(
+    temperature = 0.4,
+    top_p = 0.95,
+    max_tokens = 20
+)
+
+#4. Send prompts and generate outputs
+prompts = [
+    "To be or not to be,",
+    "How many endagered species are there in the world reported in 2025 as a number?",
+    "What is your name?",
+    "What is the biggest animal in the world?",
+    "How many colours in the rainbow?"
+]
+output = llm.generate(prompts, sampling_params)
+
+#5. Print outputs
+for out in output:
+    print("Prompt: ", out.prompt)
+    print("Generated: ", out.outputs[0].text)
+
+# CLEANUP CELL — run before recreating llm
+# This clears GPU memory usage so we can run the same instance maybe with diff prompts
+
+try:
+    del llm
+except NameError:
+    pass
+
+gc.collect()
+
+if torch.cuda.is_available():
+    torch.cuda.empty_cache()
+    torch.cuda.ipc_collect()
+
+print("Memory cleared as much as PyTorch allows.")
+
+
+# Phase 2 - measuring current model performance for optimization goals - baseline
+
+# Measure latency, throughouput, and GPU memory
+# Start time -> llm generation -> end timer -> calculate tokens used -> calculate throughput, latency and GPU memory
+
+#1. Start timer
+start_time = time.time()
+
+#2. Send prompts and generate outputs
+output = llm.generate(prompts, sampling_params)
+
+#3. End timer
+end_time = time.time()
+
+# Find Latency
+
+latency = end_time - start_time
+print(f"Latency: {latency: .2f}, seconds")
+
+# Find throughput
+
+total_generated_tokens = 0
+for out in output:
+    total_generated_tokens += len(out.outputs[0].token_ids)
+
+throughput = total_generated_tokens / latency
+print(f"Throughput: {throughput: .2f} tokens/sec")
+
+# Phase 3 - connecting client who sends API request to vLLM (server)
+# 1. start up vLLM server -- architecture: client API request to server -> vLLM (server) receives req -> server inference -> response
+!nohup python -m vllm.entrypoints.openai.api_server \
+--model facebook/opt-125m \
+--host 127.0.0.1 \
+--port 8000 \
+--gpu-memory-utilization 0.8 \
+
+# 2. Checking server health - should produce JSON output of the model
+!curl http//:localhost:8000/v1/models
+
+# 3. Send an API request
+from openai import OpenAI
+client = OpenAI(
+    api_key = "None",
+    base_url = "http://127.0.0.1:8000/v1"
+)
+
+response = client.completions.create( #sends a generation request to server
+    model = "facebook/opt-125m",
+    prompt = "To be or not to be,",
+    max_tokens = 40,
+    temperature = 0.3
+)
+
+print(response.choices[0].text) #takes n generated completion generated responses
+                                #and chooses the first one since this case has
+                                #n = 0 (i.e., first response generated is selected)

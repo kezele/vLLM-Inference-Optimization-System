@@ -46,6 +46,21 @@ Metrics Tracked
 - Google Colab
 - Future Improvements
 
+Challenges Faced During API Deployment in Google Colab
+
+While experimenting with vLLM’s API serving capabilities, several deployment limitations were encountered due to the nature of the Google Colab environment.
+
+Key challenges included:
+
+- Colab runtimes not handling persistent background inference servers reliably
+- GPU memory conflicts when attempting to keep API servers and inference workloads active simultaneously
+- Runtime interruptions and forced session resets during prolonged server execution
+- Difficulties maintaining stable local API endpoints within Colab’s temporary notebook infrastructure
+- Additional startup overhead caused by repeatedly initializing inference servers after runtime resets
+
+These limitations highlighted the tradeoff between rapid prototyping environments like Colab and more production-oriented infrastructure such as dedicated GPU servers, Docker containers, or cloud-based deployments on AWS/Kubernetes.
+
+
 Potential future extensions include:
 
 - stable REST API deployment outside Colab

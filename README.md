@@ -13,15 +13,19 @@ The project evaluates how different inference settings affect performance, inclu
 - Key Experiments
 
 Baseline Inference
+
 Ran a small open-source model through vLLM to establish baseline generation performance.
 
 Batch Scaling
+
 Tested different prompt batch sizes to observe how larger workloads affect latency and throughput.
 
 Max Token Tuning
+
 Adjusted max_tokens to analyze how response length impacts latency, compute workload, and output completeness.
 
 API Serving Exploration
+
 Explored vLLM’s OpenAI-compatible API serving architecture for real-time text generation.
 
 Metrics Tracked

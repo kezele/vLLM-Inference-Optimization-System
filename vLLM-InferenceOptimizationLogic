@@ -1,4 +1,4 @@
-# NOTE 1 - each section of this code should be run in blocks in this order to optimize runtime and compiling dependencies 
+# NOTE - each section of this code should be run in blocks in this order to optimize runtime and compiling dependencies 
 
 # Tracks GPU and CUDA metadata to determine current memory capacity (VRAM)
 !nvidia-smi
